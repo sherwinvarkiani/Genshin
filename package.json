@@ -1,0 +1,23 @@
+{
+  "name": "genshin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sherwinvarkiani/Genshin.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sherwinvarkiani/Genshin/issues"
+  },
+  "homepage": "https://github.com/sherwinvarkiani/Genshin#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
