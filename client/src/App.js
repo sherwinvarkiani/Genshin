@@ -1,18 +1,17 @@
 // client/src/App.js
 
-import React from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 import "./App.css";
 
 function App() {
-  const [data, setData] = React.useState(null);
+  const [data, setData] = useState(null);
+  const [isRefreshingBoard, setIsRefreshingBoard] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetch("/api")
       .then((res) => res.json())
       .then((data) => setData(data.message));
   }, []);
-
-  console.log(data);
 
   function display() {
     if (data && data.length === 25) {
@@ -61,9 +60,26 @@ function App() {
     return (<div></div>)
   }
 
+  const refreshBoard = useCallback(async () => {
+    if (isRefreshingBoard) return;
+
+    setIsRefreshingBoard(true);
+
+    fetch("/api")
+        .then((res) => res.json())
+        .then((data) => setData(data.message));
+
+    setIsRefreshingBoard(false);
+  })
+
   return (
     <div className="App">
       <header className="App-header">
+        <button onClick={() => {
+          fetch("/createRoom")
+          .then((res) => res.json());
+        }}>Create Room</button>
+        <button disabled={isRefreshingBoard} onClick={refreshBoard}>Regenerate Board</button>
         {display()}
       </header>
     </div>
