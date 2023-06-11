@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import "./App.css";
-import { initiateSocketConnection, disconnectSocket, subscribeToMessages, sendMessage, getBoard } from './socketio.service';
+import { initiateSocketConnection, disconnectSocket, subscribeToMessages, sendMessage, getBoard, joinRoom } from './socketio.service';
 import { nanoid } from 'nanoid'
 
 function App() {
@@ -23,6 +23,10 @@ function App() {
   useEffect(() => {
     if (token) {
       initiateSocketConnection(token);
+      joinRoom({token}, cb => {
+        console.log("joined room");
+        console.log(cb);
+      })
       subscribeToMessages((err, data) => {
         console.log("SUBSCRIBED");
         console.log(data);
@@ -107,9 +111,14 @@ function App() {
 
     setIsRefreshingBoard(true);
 
-    fetch("/api")
-        .then((res) => res.json())
-        .then((board) => setBoard(board.message));
+    // fetch("/api")
+    //     .then((res) => res.json())
+    //     .then((board) => setBoard(board.message));
+    getBoard({token}, cb => {
+      console.log("CB IS");
+      console.log(cb);
+      console.log("DONE");
+    });
 
     setIsRefreshingBoard(false);
   }, [isRefreshingBoard])

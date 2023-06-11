@@ -64,6 +64,12 @@ io.on("connection", (socket) => {
     console.log("join: " + roomName);
     socket.join(roomName);
 
+    callback({
+      status: "ok123"
+    });
+  });
+
+  socket.on("get board", ({roomName}, callback) => {
     // generate board for room
     // set to avoid duplicates
     var bingoCells = new Set();
@@ -79,7 +85,7 @@ io.on("connection", (socket) => {
 
     io.in(roomName).emit("message", boards[roomName]);
     callback({
-      status: "ok123"
+      status: "ok"
     });
   });
 
