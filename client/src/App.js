@@ -7,13 +7,14 @@ import { nanoid } from 'nanoid'
 
 function App() {
   const [board, setBoard] = useState(null);
+  const [cellStatuses, setCellStatuses] = useState(null);
   const [isRefreshingBoard, setIsRefreshingBoard] = useState(false);
 
-  useEffect(() => {
-    fetch("/api")
-      .then((res) => res.json())
-      .then((board) => setBoard(board.message));
-  }, []);
+  // useEffect(() => {
+  //   fetch("/api")
+  //     .then((res) => res.json())
+  //     .then((board) => setBoard(board.message));
+  // }, []);
 
   const [token, setToken] = useState('');
 
@@ -30,7 +31,8 @@ function App() {
       subscribeToMessages((err, data) => {
         console.log("SUBSCRIBED");
         console.log(data);
-        setBoard(data);
+        setBoard(data[0]);
+        setCellStatuses(data[1]);
       });
       getBoard({token}, cb => {
         console.log("CB IS");
@@ -58,6 +60,27 @@ function App() {
 
     submitMessage();
   }, [count, token]);
+  
+  function getCellColor(cellNumber) {
+    if (cellStatuses[cellNumber] === 0) {
+      return "gray";
+    } else if (cellStatuses[cellNumber] === 1) {
+      return "red";
+    } else if (cellStatuses[cellNumber] === -1) {
+      return "blue";
+    }
+  }
+
+  function cellClick(cellNumber) {
+    const newCellStatuses = cellStatuses.map((c, i) => {
+      if (i === cellNumber) {
+        return c === 1 ? -1 : 1;
+      } else {
+        return c;
+      }
+    });
+    setCellStatuses(newCellStatuses);
+  }
 
   function display() {
     if (board && board.length === 25) {
@@ -65,7 +88,7 @@ function App() {
       <header className="App-header">
         <table>
           <tr>
-            <td>{board[0]}</td>
+            <td style={{backgroundColor: getCellColor(0)}} onClick={() => {cellClick(0)}}>{board[0]}</td>
             <td>{board[1]}</td>
             <td>{board[2]}</td>
             <td>{board[3]}</td>
@@ -121,7 +144,7 @@ function App() {
     });
 
     setIsRefreshingBoard(false);
-  }, [isRefreshingBoard])
+  }, [isRefreshingBoard, token])
 
   const submitToken = (e) => {
     e.preventDefault();

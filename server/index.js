@@ -33,6 +33,13 @@ const Quantities = {
   2: 5,
 };
 
+const CellStatus = {
+  None: 0,
+  Blue: 1,
+  Red: 2,
+  Both: 3
+}
+
 var boards = {}
 
 app.get("/api", async (req, res) => {
@@ -78,7 +85,10 @@ io.on("connection", (socket) => {
     }
 
     var arr = Array.from(bingoCells);
-    boards[roomName] = arr;
+    var cellStatuses = Array(25).fill(CellStatus.None);
+    console.log(cellStatuses);
+    boards[roomName] = [arr, cellStatuses];
+    
     
     console.log("generating board and sending to client " + boards[roomName]);
     console.log("done");
