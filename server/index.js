@@ -80,6 +80,8 @@ function getBingoSlot() {
 
   var quantity = Quantities[rng(getEnumLength(Quantities))]
 
+  // TODO scale the rng so that its scaled based off of how many options are in the data set
+  // i.e. right now you're almost always guaranteed to get the tcg one
   switch (rnd) {
     case DataType.Food:
       msg = `Cook ${quantity} ${getRandomItem(data["food"])}`
