@@ -6,10 +6,12 @@ const express = require("express");
 const PORT = process.env.PORT || 3001;
 
 const app = express();
-const http = require('http');
-const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
+const http = require('http').createServer(app);
+const io = require('socket.io')(http, {
+  cors: {
+    origins: ['http://localhost:3000']
+  }
+});
 
 // the different types of task the person can be asked to do
 const DataType = {
@@ -22,13 +24,6 @@ const DataType = {
   Fishing: 6,
   Domains: 7,
   Miscellaneous: 8
-  // Collect Items
-  // Spiral Abyss
-  // TCG
-  // Gacha -> get The Bell or get a 5 star or get a non-banner character
-  // Fishing
-  // Domains
-  // Miscellaneous (i.e. walk between x teleporters, walk between 2 statue of the sevens (2 different regions), die to fall damage, drowning, (die in 5 different ways), beat cryo regisvine with a mono cryo team, take a picture of x animals, shoot a bird while in middair)
 };
 
 // the number of times a person needs to complete a task
@@ -36,8 +31,9 @@ const Quantities = {
   0: 1,
   1: 3,
   2: 5,
-  3: 10,
 };
+
+var boards = {}
 
 app.get("/api", async (req, res) => {
   // set to avoid duplicates
@@ -52,12 +48,54 @@ app.get("/api", async (req, res) => {
   res.json({ message: arr });
 });
 
-app.get("/createRoom", async (req, res) => {
 
-  res.json({ message: "" });
+io.on("connection", (socket) => {
+  console.log("a user connected");
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+  socket.on("my message", (msg) => {
+    console.log("message: " + msg);
+    io.emit("my broadcast", `server: ${msg}`);
+  });
+
+  socket.on("join", ({roomName}, callback) => {
+    // join room
+    console.log("join: " + roomName);
+    socket.join(roomName);
+
+    // generate board for room
+    // set to avoid duplicates
+    var bingoCells = new Set();
+    while (bingoCells.size < 25) {
+      bingoCells.add(getBingoSlot());
+    }
+
+    var arr = Array.from(bingoCells);
+    boards[roomName] = arr;
+    
+    console.log("generating board and sending to client " + boards[roomName]);
+    console.log("done");
+
+    io.in(roomName).emit("message", boards[roomName]);
+    callback({
+      status: "ok123"
+    });
+  });
+
+  socket.on("message", ({ message, roomName }, callback) => {
+    console.log("message: " + message + " in " + roomName);
+    // send socket to all in room except sender
+    socket.to(roomName).emit("message", message);
+    callback({
+      status: "ok"
+    });
+    // send to all including sender
+    // io.to(roomName).emit("message", message);
+  });
 });
 
-app.listen(PORT, () => {
+http.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
 
@@ -80,19 +118,17 @@ function getBingoSlot() {
 
   var quantity = Quantities[rng(getEnumLength(Quantities))]
 
-  // TODO scale the rng so that its scaled based off of how many options are in the data set
-  // i.e. right now you're almost always guaranteed to get the tcg one
   switch (rnd) {
     case DataType.Food:
-      msg = `Cook ${quantity} ${getRandomItem(data["food"])}`
+      msg = `Cook ${quantity} ${getRandomItem(data["Food"])}`
       msg += quantity > 1 ? "(s)" : "";
       break;
     case DataType.Enemies:
-      msg = `Defeat ${quantity} ${getRandomItem(data["enemies"])}`
+      msg = `Defeat ${quantity} ${getRandomItem(data["Enemies"])}`
       msg += quantity > 1 ? "(s)" : "";
       break;
     case DataType.Items:
-      msg = `Acquire ${quantity} ${getRandomItem(data["items"])}`
+      msg = `Acquire ${quantity} ${getRandomItem(data["Items"])}`
       msg += quantity > 1 ? "(s)" : "";
       break;
     case DataType.SpiralAbyss:
