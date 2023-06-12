@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import "./App.css";
-import { initiateSocketConnection, disconnectSocket, subscribeToMessages, sendMessage, getBoard, joinRoom } from './socketio.service';
+import { initiateSocketConnection, disconnectSocket, subscribeToMessages, updateStatus, getBoard, joinRoom } from './socketio.service';
 import { nanoid } from 'nanoid'
 
 function App() {
@@ -17,9 +17,9 @@ function App() {
   // }, []);
 
   const [token, setToken] = useState('');
+  const [playerNum, setPlayerNum] = useState(0);
 
   const tokenInputRef = useRef('');
-  const [count, setCount] = useState(0);
 
   useEffect(() => {
     if (token) {
@@ -44,29 +44,13 @@ function App() {
       }
     }
   }, [token]);
-
-  
-
-  
-
-  useEffect(() => {
-    const submitMessage = (e) => {
-      // e.preventDefault();
-      const message = count;
-      sendMessage({message, roomName: token}, cb => {
-        console.log(cb);
-      });
-    };
-
-    submitMessage();
-  }, [count, token]);
   
   function getCellColor(cellNumber) {
     if (cellStatuses[cellNumber] === 0) {
       return "gray";
     } else if (cellStatuses[cellNumber] === 1) {
       return "red";
-    } else if (cellStatuses[cellNumber] === -1) {
+    } else if (cellStatuses[cellNumber] === 2) {
       return "blue";
     }
   }
@@ -74,12 +58,18 @@ function App() {
   function cellClick(cellNumber) {
     const newCellStatuses = cellStatuses.map((c, i) => {
       if (i === cellNumber) {
-        return c === 1 ? -1 : 1;
+        return playerNum;
       } else {
         return c;
       }
     });
     setCellStatuses(newCellStatuses);
+    console.log("sending status " + newCellStatuses);
+    console.log("to room " + token);
+    updateStatus({newCellStatuses, token}, cb => {
+      console.log("sent statuses");
+      console.log(cb);
+    });
   }
 
   function display() {
@@ -89,38 +79,38 @@ function App() {
         <table>
           <tr>
             <td style={{backgroundColor: getCellColor(0)}} onClick={() => {cellClick(0)}}>{board[0]}</td>
-            <td>{board[1]}</td>
-            <td>{board[2]}</td>
-            <td>{board[3]}</td>
-            <td>{board[4]}</td>
+            <td style={{backgroundColor: getCellColor(1)}} onClick={() => {cellClick(1)}}>{board[1]}</td>
+            <td style={{backgroundColor: getCellColor(2)}} onClick={() => {cellClick(2)}}>{board[2]}</td>
+            <td style={{backgroundColor: getCellColor(3)}} onClick={() => {cellClick(3)}}>{board[3]}</td>
+            <td style={{backgroundColor: getCellColor(4)}} onClick={() => {cellClick(4)}}>{board[4]}</td>
           </tr>
           <tr>
-            <td>{board[5]}</td>
-            <td>{board[6]}</td>
-            <td>{board[7]}</td>
-            <td>{board[8]}</td>
-            <td>{board[9]}</td>
+            <td style={{backgroundColor: getCellColor(5)}} onClick={() => {cellClick(5)}}>{board[5]}</td>
+            <td style={{backgroundColor: getCellColor(6)}} onClick={() => {cellClick(6)}}>{board[6]}</td>
+            <td style={{backgroundColor: getCellColor(7)}} onClick={() => {cellClick(7)}}>{board[7]}</td>
+            <td style={{backgroundColor: getCellColor(8)}} onClick={() => {cellClick(8)}}>{board[8]}</td>
+            <td style={{backgroundColor: getCellColor(9)}} onClick={() => {cellClick(9)}}>{board[9]}</td>
           </tr>
           <tr>
-            <td>{board[10]}</td>
-            <td>{board[11]}</td>
-            <td>{board[12]}</td>
-            <td>{board[13]}</td>
-            <td>{board[14]}</td>
+            <td style={{backgroundColor: getCellColor(10)}} onClick={() => {cellClick(10)}}>{board[10]}</td>
+            <td style={{backgroundColor: getCellColor(11)}} onClick={() => {cellClick(11)}}>{board[11]}</td>
+            <td style={{backgroundColor: getCellColor(12)}} onClick={() => {cellClick(12)}}>{board[12]}</td>
+            <td style={{backgroundColor: getCellColor(13)}} onClick={() => {cellClick(13)}}>{board[13]}</td>
+            <td style={{backgroundColor: getCellColor(14)}} onClick={() => {cellClick(14)}}>{board[14]}</td>
           </tr>
           <tr>
-            <td>{board[15]}</td>
-            <td>{board[16]}</td>
-            <td>{board[17]}</td>
-            <td>{board[18]}</td>
-            <td>{board[19]}</td>
+            <td style={{backgroundColor: getCellColor(15)}} onClick={() => {cellClick(15)}}>{board[15]}</td>
+            <td style={{backgroundColor: getCellColor(16)}} onClick={() => {cellClick(16)}}>{board[16]}</td>
+            <td style={{backgroundColor: getCellColor(17)}} onClick={() => {cellClick(17)}}>{board[17]}</td>
+            <td style={{backgroundColor: getCellColor(18)}} onClick={() => {cellClick(18)}}>{board[18]}</td>
+            <td style={{backgroundColor: getCellColor(19)}} onClick={() => {cellClick(19)}}>{board[19]}</td>
           </tr>
           <tr>
-            <td>{board[20]}</td>
-            <td>{board[21]}</td>
-            <td>{board[22]}</td>
-            <td>{board[23]}</td>
-            <td>{board[24]}</td>
+            <td style={{backgroundColor: getCellColor(20)}} onClick={() => {cellClick(20)}}>{board[20]}</td>
+            <td style={{backgroundColor: getCellColor(21)}} onClick={() => {cellClick(21)}}>{board[21]}</td>
+            <td style={{backgroundColor: getCellColor(22)}} onClick={() => {cellClick(22)}}>{board[22]}</td>
+            <td style={{backgroundColor: getCellColor(23)}} onClick={() => {cellClick(23)}}>{board[23]}</td>
+            <td style={{backgroundColor: getCellColor(24)}} onClick={() => {cellClick(24)}}>{board[24]}</td>
           </tr>
         </table>
       </header>
@@ -150,6 +140,7 @@ function App() {
     e.preventDefault();
     const tokenValue = tokenInputRef.current.value;
     setToken(tokenValue);
+    setPlayerNum(2);
   }
 
   return (
@@ -162,9 +153,10 @@ function App() {
         <button onClick={() => {
           var roomCode = nanoid(6);
           setToken(roomCode);
+          setPlayerNum(1);
         }}>Create Room</button>
         <button disabled={isRefreshingBoard} onClick={refreshBoard}>Regenerate Board</button>
-        <button onClick={() => {setCount(count + 1);}}>Add 1</button>
+        {token != '' ? <h1>Room Code: {token}</h1> : <div></div>}
         {display()}
       </header>
     </div>

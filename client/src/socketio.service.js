@@ -17,16 +17,17 @@ export const disconnectSocket = () => {
   if (socket) socket.disconnect();
 }
 
-export const joinRoom = ({token}, cb) => {
+export const joinRoom = (token, cb) => {
   if (!socket) return(true);
 
-  socket.emit('join', {token}, cb);
+  socket.emit('join', token, cb);
 }
 
-export const getBoard = ({token}, cb) => {
+export const getBoard = (token, cb) => {
   if (!socket) return(true);
 
-  socket.emit('get board', {token}, cb);
+  console.log("room number is " + token);
+  socket.emit('get board', token, cb);
 }
 
 // Handle message receive event
@@ -38,6 +39,6 @@ export const subscribeToMessages = (cb) => {
   });
 }
 
-export const sendMessage = ({message, roomName}, cb) => {
-  if (socket) socket.emit('message', { message, roomName }, cb);
+export const updateStatus = (message, cb) => {
+  if (socket) socket.emit('status', message, cb);
 }

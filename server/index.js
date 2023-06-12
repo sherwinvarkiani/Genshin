@@ -66,17 +66,17 @@ io.on("connection", (socket) => {
     io.emit("my broadcast", `server: ${msg}`);
   });
 
-  socket.on("join", ({roomName}, callback) => {
+  socket.on("join", (roomName, callback) => {
     // join room
-    console.log("join: " + roomName);
-    socket.join(roomName);
+    console.log("join: " + roomName['token']);
+    socket.join(roomName['token']);
 
     callback({
       status: "ok123"
     });
   });
 
-  socket.on("get board", ({roomName}, callback) => {
+  socket.on("get board", (roomName, callback) => {
     // generate board for room
     // set to avoid duplicates
     var bingoCells = new Set();
@@ -87,27 +87,29 @@ io.on("connection", (socket) => {
     var arr = Array.from(bingoCells);
     var cellStatuses = Array(25).fill(CellStatus.None);
     console.log(cellStatuses);
-    boards[roomName] = [arr, cellStatuses];
+    boards[roomName['token']] = [arr, cellStatuses];
     
     
-    console.log("generating board and sending to client " + boards[roomName]);
-    console.log("done");
+    console.log("generating board and sending to client " + boards[roomName['token']]);
+    console.log("done for room " + roomName['token']);
+    console.log(roomName['token']);
 
-    io.in(roomName).emit("message", boards[roomName]);
+    io.in(roomName['token']).emit("message", boards[roomName['token']]);
     callback({
       status: "ok"
     });
   });
 
-  socket.on("message", ({ message, roomName }, callback) => {
-    console.log("message: " + message + " in " + roomName);
+  socket.on("status", (message, callback) => {
+    console.log(message);
+    console.log("status: " + message['newCellStatuses'] + " in " + message['token']);
+
+    boards[message['token']][1] = message['newCellStatuses'];
     // send socket to all in room except sender
-    socket.to(roomName).emit("message", message);
+    io.in(message['token']).emit("message", boards[message['token']]);
     callback({
       status: "ok"
     });
-    // send to all including sender
-    // io.to(roomName).emit("message", message);
   });
 });
 
