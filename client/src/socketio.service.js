@@ -17,6 +17,12 @@ export const disconnectSocket = () => {
   if (socket) socket.disconnect();
 }
 
+export const createRoom = (token, cb) => {
+  if (!socket) return(true);
+
+  socket.emit('create', token, cb);
+}
+
 export const joinRoom = (token, cb) => {
   if (!socket) return(true);
 

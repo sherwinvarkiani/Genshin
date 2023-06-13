@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import "./App.css";
-import { initiateSocketConnection, disconnectSocket, subscribeToMessages, updateStatus, getBoard, joinRoom } from './socketio.service';
+import { initiateSocketConnection, disconnectSocket, subscribeToMessages, updateStatus, getBoard, joinRoom, createRoom } from './socketio.service';
 import { nanoid } from 'nanoid'
 
 function App() {
@@ -12,15 +12,29 @@ function App() {
 
   const [token, setToken] = useState('');
   const [playerNum, setPlayerNum] = useState(0);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const tokenInputRef = useRef('');
 
   useEffect(() => {
     if (token) {
       initiateSocketConnection(token);
-      joinRoom({token}, cb => {
-        console.log(cb);
-      })
+
+      if (playerNum === 1) {
+        createRoom({token}, cb => {
+          console.log(cb);
+        })
+      } else if (playerNum === 2) {
+        joinRoom({token}, cb => {
+          console.log(cb);
+          if (cb['status'] === "error: too many users in room") {
+            console.log("too many users in room");
+            setErrorMsg("Error: The room is full. Please try another room");
+            setToken('');
+            return;
+          }
+        })
+      }
       subscribeToMessages((err, data) => {
         console.log(data);
         setBoard(data[0]);
@@ -33,7 +47,7 @@ function App() {
         disconnectSocket();
       }
     }
-  }, [token]);
+  }, [token, playerNum]);
   
   function getCellColor(cellNumber) {
     if (cellStatuses[cellNumber] === 0) {
@@ -47,7 +61,7 @@ function App() {
 
   function cellClick(cellNumber) {
     const newCellStatuses = cellStatuses.map((c, i) => {
-      if (i === cellNumber) {
+      if (i === cellNumber && cellStatuses[cellNumber] === 0) {
         return playerNum;
       } else {
         return c;
@@ -121,8 +135,10 @@ function App() {
   const submitToken = (e) => {
     e.preventDefault();
     const tokenValue = tokenInputRef.current.value;
-    setToken(tokenValue);
+    setToken('');
+    setErrorMsg('');
     setPlayerNum(2);
+    setToken(tokenValue);
   }
 
   return (
@@ -134,11 +150,14 @@ function App() {
         </form>
         <button onClick={() => {
           var roomCode = nanoid(6);
-          setToken(roomCode);
+          setToken('');
+          setErrorMsg('');
           setPlayerNum(1);
+          setToken(roomCode);
         }}>Create Room</button>
         <button disabled={isRefreshingBoard} onClick={refreshBoard}>Regenerate Board</button>
-        {token != '' ? <h1>Room Code: {token}</h1> : <div></div>}
+        {token !== '' ? <h1>Room Code: {token}</h1> : <div></div>}
+        {errorMsg !== '' ? <h2>{errorMsg}</h2> : <div></div>}
         {display()}
       </header>
     </div>

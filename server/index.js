@@ -62,10 +62,34 @@ io.on("connection", (socket) => {
     console.log("user disconnected");
   });
 
+  socket.on("create", (roomName, callback) => {
+    // join room
+    console.log("create: " + roomName['token']);
+    // console.log("the room had " + io.socket.get(roomName['token']).size + " people");
+    socket.join(roomName['token']);
+
+    console.log("the new room has " + io.sockets.adapter.rooms.get(roomName['token']).size + " person");
+
+    callback({
+      status: "ok123"
+    });
+  });
+
   socket.on("join", (roomName, callback) => {
     // join room
     console.log("join: " + roomName['token']);
+    console.log("the room had " + io.sockets.adapter.rooms.get(roomName['token']).size + " people");
+
+    if (io.sockets.adapter.rooms.get(roomName['token']).size !== 1) {
+      callback({
+        status: "error: too many users in room"
+      });
+      return;
+    }
+
     socket.join(roomName['token']);
+
+    console.log("and now has " + io.sockets.adapter.rooms.get(roomName['token']).size + " people");
 
     callback({
       status: "ok123"
