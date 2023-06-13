@@ -10,12 +10,6 @@ function App() {
   const [cellStatuses, setCellStatuses] = useState(null);
   const [isRefreshingBoard, setIsRefreshingBoard] = useState(false);
 
-  // useEffect(() => {
-  //   fetch("/api")
-  //     .then((res) => res.json())
-  //     .then((board) => setBoard(board.message));
-  // }, []);
-
   const [token, setToken] = useState('');
   const [playerNum, setPlayerNum] = useState(0);
 
@@ -25,19 +19,15 @@ function App() {
     if (token) {
       initiateSocketConnection(token);
       joinRoom({token}, cb => {
-        console.log("joined room");
         console.log(cb);
       })
       subscribeToMessages((err, data) => {
-        console.log("SUBSCRIBED");
         console.log(data);
         setBoard(data[0]);
         setCellStatuses(data[1]);
       });
       getBoard({token}, cb => {
-        console.log("CB IS");
         console.log(cb);
-        console.log("DONE");
       });
       return () => {
         disconnectSocket();
@@ -64,10 +54,7 @@ function App() {
       }
     });
     setCellStatuses(newCellStatuses);
-    console.log("sending status " + newCellStatuses);
-    console.log("to room " + token);
     updateStatus({newCellStatuses, token}, cb => {
-      console.log("sent statuses");
       console.log(cb);
     });
   }
@@ -124,13 +111,8 @@ function App() {
 
     setIsRefreshingBoard(true);
 
-    // fetch("/api")
-    //     .then((res) => res.json())
-    //     .then((board) => setBoard(board.message));
     getBoard({token}, cb => {
-      console.log("CB IS");
       console.log(cb);
-      console.log("DONE");
     });
 
     setIsRefreshingBoard(false);
